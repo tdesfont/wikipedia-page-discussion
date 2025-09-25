@@ -47,3 +47,4 @@ tbd@Thibaults-MacBook-Pro frontend-app % npm run dev
  ✓ Ready in 1277ms
 ```
 
+![image](screenshot.png)
