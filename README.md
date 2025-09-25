@@ -2,6 +2,14 @@
 
 A simple RAG based application to talk to a Wikipedia web page.
 
+Get a Mistral API key:
+
+- In the folder `flask_backend/src/rag`, create a .env file like the following:
+```
+MISTRAL_API_KEY="your mistral api key"
+```
+- This .env file will not be pushed to github
+
 Install and start flask backend:
 
 ```python
