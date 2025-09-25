@@ -1,1 +1,2 @@
-curl -X POST -H "Content-Type: application/json" -d '{"query": "What was the first country to play football?"}' http://localhost:5000/query
+curl -X POST -H "Content-Type: application/json" -d '{"wikipedia_url": "https://en.wikipedia.org/wiki/Basketball"}' http://localhost:5000/set_wikipedia_url
+curl -X POST -H "Content-Type: application/json" -d '{"query": "What was the first country to play Basketball?"}' http://localhost:5000/query

@@ -1,13 +1,8 @@
 from flask import Flask, request, jsonify
-import pandas as pd
-
-import faiss
-import numpy as np
-import os
-import pandas as pd
-
+from flask_cors import CORS
 from mistralai import Mistral
-import requests
+
+import pandas as pd
 import numpy as np
 import faiss
 import os
@@ -20,18 +15,15 @@ from src.scrapper.wikipedia_scrapper import fetch_page, extract_text
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Allows all origins by default
 
 # Initialise index in memory
-df = pd.read_csv('src/rag/rag_embeddings.csv')
-text_df = df[['text_chunk']]
-embeddings_df = df.drop(['text_chunk'], axis=1)
-text_embeddings = np.array(embeddings_df)
-d = text_embeddings.shape[1]
-index = faiss.IndexFlatL2(d)
-index.add(text_embeddings)
 
 api_key = os.getenv('MISTRAL_API_KEY')
 client = Mistral(api_key=api_key)
+
+index = None
+TEXT_DF = None
 
 
 def get_text_embedding(input):
@@ -63,7 +55,15 @@ def set_wikipedia_url():
         "text_chunk": chunks
     })
     output_df = pd.concat([df, embeddings_df], axis=1)
-    return None
+    global TEXT_DF
+    TEXT_DF = output_df[['text_chunk']]
+    embeddings_df = output_df.drop(['text_chunk'], axis=1)
+    text_embeddings = np.array(embeddings_df)
+    d = text_embeddings.shape[1]
+    global index
+    index = faiss.IndexFlatL2(d)
+    index.add(text_embeddings)
+    return {'status': 'Succeeded'}
 
 
 @app.route('/query', methods=['POST'])
@@ -74,8 +74,11 @@ def receive_query():
         return jsonify({'error': 'No query sentence provided'}), 400
     # You can process the query_sentence here
     question_embeddings = np.array([get_text_embedding(query_sentence)])
+
+    global index
     D, I = index.search(question_embeddings, k=5)  # distance, index
-    chunks = text_df['text_chunk']
+    global TEXT_DF
+    chunks = TEXT_DF['text_chunk']
     retrieved_chunks_indices = [i for i in I.tolist()[0] if i != -1]
     retrieved_chunks = [chunks[i] for i in retrieved_chunks_indices]
 
